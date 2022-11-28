@@ -5,6 +5,7 @@ setup.py
 components/__init__.py
 components/collector.py
 components/container.py
+components/errors.py
 components/processor.py
 components/reporter.py
 components/viewer.py

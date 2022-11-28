@@ -1,5 +1,9 @@
 import pandas as pd
+import numpy as np
+import configparser
+from types import NoneType
 from configparser import ConfigParser
+from components.errors import NotConfigFile
 
 
 class DataStorageContainerMeta(type):
@@ -26,14 +30,34 @@ class DataStorageContainerMeta(type):
 class DataStorageContainer(metaclass=DataStorageContainerMeta):
     
     def __init__(self, config:ConfigParser, data:pd.DataFrame = None) -> None:
-        config.read('config/data.ini')
+        config_path = 'config/config.ini'
+        config_section = 'DATA_ROLES_CONFIG'
+        
+        try:
+            config.read(config_path)
+
+        except configparser.ParsingError  as e:
+            print(f"Not able to read config file {config_path}")
+            raise
+        
+        try:
+            if not config._sections:
+                raise NotConfigFile(f"ConfigParser is empty, check location and/or content of the file {config_path}")
+
+            self.roles = {k:v for k,v in config[config_section].items()}
+
+        except KeyError:
+            print(f"Section {config_section} not found in config file {config_path}")
+            raise 
+
+        except NotConfigFile:
+            raise
+
         self.data = data
-        self.data_id = config['FILE_SOURCE_CONFIG']['id_columns']
-        self.data_datetime = config['FILE_SOURCE_CONFIG']['datetime_columns']
-        self.data_target = config['FILE_SOURCE_CONFIG']['target']
         self.categorical_cols = []
         self.numeric_cols = []
         self.dimensions = {}
+    
 
     @property
     def data(self):
@@ -41,4 +65,12 @@ class DataStorageContainer(metaclass=DataStorageContainerMeta):
 
     @data.setter
     def data(self, value:pd.DataFrame):
-        self._data = value
+        try:
+            dtypes = (NoneType, pd.core.frame.DataFrame, np.ndarray)
+            assert isinstance(value, dtypes)
+            self._data = value
+
+        except AssertionError:
+            error_msg = f"""You are trying to set an invalid type to the data attribute of {self}\
+            . Try instead one of the following {dtypes}""".replace("  ", "")
+            raise AssertionError(error_msg)

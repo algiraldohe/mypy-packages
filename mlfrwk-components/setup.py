@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='mlfrwk-components',
-    version='1.1.2',
+    version='1.1.3',
     description="Building blocks for carrying EDA in a Data Science Project",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

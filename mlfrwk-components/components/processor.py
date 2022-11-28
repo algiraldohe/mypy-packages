@@ -19,7 +19,7 @@ class DataProcessor():
         container = DataStorageContainer()
         data = container.data
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-        data = data.drop(columns=[col for col in [container.data_id, container.data_datetime, container.data_target] if col != ''])
+        data = data.drop(columns=[col for col in list(container.roles.values()) if col != ''])
         container.categorical_cols = list(data.select_dtypes(exclude=numerics).columns)
         container.numeric_cols = list(data.select_dtypes(exclude=['object']).columns)
 

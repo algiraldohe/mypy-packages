@@ -8,20 +8,37 @@ class DataCollector():
 
     def __init__(self, source, config) -> None:
         self.source = source
-        config.read('config/data.ini')
+        config_path = 'config/config.ini'
+        config.read(config_path)
 
         if source == 'database':
-            instance = config['DATABASE_CONFIG']['database']
-            user = config['DATABASE_CONFIG']['user_name']
-            password = config['DATABASE_CONFIG']['password']
-            host = config['DATABASE_CONFIG']['host']
-            port = config['DATABASE_CONFIG']['port']
-            database = config['DATABASE_CONFIG']['db_name']
-            url = f"{instance}://{user}:{password}@{host}/{database}"
+            mandatory = config['DATABASE_CONFIG']['mandatory'].split(",")
+            mandatory = {k:v for k,v in config['DATABASE_CONFIG'].items() if (k in mandatory) }
+            params = {k:v for k,v in config['DATABASE_CONFIG'].items()}
+            empty_parameters = [v for v in mandatory.values()]
+
+            if '' in empty_parameters:
+                raise Exception(f"Expected mandatory paramater from {config_path} but '' was received."\
+                    f" Check parameters in section [DATABASE_CONFIG]: {mandatory}"
+                    )
+
+            url = f"{params['database']}://{params['user_name']}:{params['password']}@{params['host']}/{params['db_name']}"
             self.engine = sqlalchemy.create_engine(url)
 
         if source == 'file':
-            self.filename = config['FILE_SOURCE_CONFIG']['file_path']
+            mandatory = config['FILE_SOURCE_CONFIG']['mandatory'].split(",")
+            mandatory = {k:v for k,v in config['FILE_SOURCE_CONFIG'].items() if (k in mandatory) }
+            params = {k:v for k,v in config['FILE_SOURCE_CONFIG'].items()}
+            empty_parameters = [v for v in mandatory.values()]
+
+            
+
+            if '' in empty_parameters:
+                raise Exception(f"Expected mandatory paramater from {config_path} but '' was received."\
+                    f" Check parameters in section [FILE_SOURCE_CONFIG]: {mandatory}"
+                    ) 
+
+            self.filename = params['file_path']
             
 
     def get_file(self, filename:str = None) -> pd.DataFrame:
